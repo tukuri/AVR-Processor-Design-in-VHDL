@@ -1,0 +1,810 @@
+
+AVRASM ver. 2.1.42  C:\Users\tpuku\OneDrive\¹®¼­\HW5\HW5.asm Sun Feb 24 22:08:01 2019
+
+                 
+                 
+                 ; 
+                 ; Amtel AVR Test Code
+                 ; 
+                 ; This is the test code for the AVR design. It exercises the various 
+                 ; instructions implemented in the design, allowing the functionality to be 
+                 ; verified by observing the program address bus, the program data bus, the data 
+                 ; address bus, and the data data bus.
+                 ; Observe the instruction results and flags by PUSHing the registers and POPing them. 
+                 ; PUSH instruction allows observing the values by loading them on data bus.
+                 ; To observe flags, we first use IN instruction to load the flags to a general register(r10), 
+                 ; and then PUSH the register so that we can observe the flags on data bus.
+                 ; Status Register(SREG, 8-bit) : ITHSVNZC
+                 ; Revision History:
+                 ;	  22 Jan 19	   Sung Hoon Choi		  Created
+                 ;	  22 Jan 19    Sung Hoon Choi         Added ALU tests, branch tests, and skip tests
+                 ;	  23 Jan 19    Sung Hoon Choi		  Revised the test code to use IN instruction 
+                 ;										  to fetch and observe the flags.
+                 ;     24 Jan 19    Garret Sullivan        Added data memory access tests
+                 ; 	  24 Jan 19    Sung Hoon Choi		  Added more test cases for ALU ops
+                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 
+                 .equ SREG = 0x3f
+                 
+                 ; Initialize all status register into zeros.
+000000 9488      BCLR    0                      
+000001 94f8      BCLR    7                   
+000002 94c8      BCLR    4                  
+000003 94b8      BCLR    3                    
+000004 9498      BCLR    1                     
+000005 94d8      BCLR    5                     
+000006 94a8      BCLR    2                       
+000007 94e8      BCLR    6                       
+                 
+                 ; test load immediate, push, and pop (SP=0 will loop to FFFF)
+                 ; test load immediate, push, and pop
+                 test_ldi_push_pop:
+000008 e70e      	ldi r16, $7E   ; r16=7E
+000009 ef18      	ldi r17, $F8   ; r17=F8
+00000a e22c      	ldi r18, $2C   ; r18=2C
+00000b 930f      	push r16       ;W 7E FFFF
+00000c 931f      	push r17       ;W F8 FFFE
+00000d 932f      	push r18       ;W 2C FFFD
+00000e 912f      	pop r18        ;R 2C FFFD
+00000f 911f      	pop r17        ;R F8 FFFE
+000010 910f      	pop r16        ;R 7E FFFF
+                 
+                 
+                 ; test store indirect
+                 test_st:
+000011 efbf      	ldi r27, $FF   ; setting X
+000012 e0a0      	ldi r26, $00   ; X = FF00
+000013 930c      	st X, r16      ;W 7E FF00
+                 
+000014 efdf      	ldi r29, $FF   ; setting Y
+000015 e8c0      	ldi r28, $80   ; Y = FF80
+000016 8318      	st Y, r17      ;W F8 FF80
+                 
+000017 efff      	ldi r31, $FF   ; setting Z
+000018 ebe0      	ldi r30, $B0   ; Z = FFB0
+000019 8320      	st Z, r18      ;W 2C FFB0
+                 
+                 
+                 ; test store indirect with post increment
+                 test_st_inc:
+00001a 932d      	st X+, r18     ;W 2C FF00
+00001b 931d      	st X+, r17     ;W F8 FF01
+00001c 930d      	st X+, r16     ;W 7E FF02
+                 
+00001d 9329      	st Y+, r18     ;W 2C FF80
+00001e 9319      	st Y+, r17     ;W F8 FF81
+00001f 9309      	st Y+, r16     ;W 7E FF82
+                 
+000020 9321      	st Z+, r18     ;W 2C FFB0
+000021 9311      	st Z+, r17     ;W F8 FFB1
+000022 9301      	st Z+, r16     ;W 7E FFB2
+                 
+                 
+                 ; test store indirect with pre-decrement
+                 test_st_dec:
+000023 932e      	st -X, r18     ;W 2C FF02
+000024 931e      	st -X, r17     ;W F8 FF01
+000025 930e      	st -X, r16     ;W 7E FF00
+                 
+000026 931a      	st -Y, r17     ;W F8 FF82
+000027 930a      	st -Y, r16     ;W 7E FF81
+000028 932a      	st -Y, r18     ;W 2C FF80
+                 
+000029 9302      	st -Z, r16     ;W 7E FFB2
+00002a 9322      	st -Z, r18     ;W 2C FFB1
+00002b 9312      	st -Z, r17     ;W F8 FFB0
+                 
+                 
+                 ; test load indirect
+                 test_ld:
+00002c 913c      	ld r19, X      ;R 7E FF00
+00002d 933f      	push r19       ;W 7E FFFF
+00002e 913f      	pop r19        ;R 7E FFFF
+                 
+00002f 8148      	ld r20, Y      ;R 2C FF80
+000030 934f      	push r20       ;W 2C FFFF
+000031 914f      	pop r20        ;R 2C FFFF
+                 
+000032 8150      	ld r21, Z      ;R F8 FFB0
+000033 935f      	push r21       ;W F8 FFFF
+000034 915f      	pop r21        ;R F8 FFFF
+                 
+                 
+                 ; test load indirect with post-increment
+                 test_ld_inc:
+000035 913d      	ld r19, X+     ;R 7E FF00
+000036 913d      	ld r19, X+     ;R F8 FF01
+                 
+000037 9149      	ld r20, Y+     ;R 2C FF80
+000038 9149      	ld r20, Y+     ;R 7E FF81
+                 
+000039 9151      	ld r21, Z+     ;R F8 FFB0
+00003a 9151      	ld r21, Z+     ;R 2C FFB1
+                 
+                 
+                 ; test load indirect with pre-decrement
+                 test_ld_dec:
+00003b 913e      	ld r19, -X     ;R F8 FF01
+00003c 913e      	ld r19, -X     ;R 7E FF00
+                 
+00003d 914a      	ld r20, -Y     ;R 7E FF81
+00003e 914a      	ld r20, -Y     ;R 2C FF80
+                 
+00003f 9152      	ld r21, -Z     ;R 2C FFB1
+000040 9152      	ld r21, -Z     ;R F8 FFB0
+                 
+                 
+                 ; test store indirect with offset
+                 test_std:
+000041 834a      	std Y+2, r20   ;W 2C FF82
+000042 8352      	std Z+2, r21   ;W F8 FFB2
+                 
+                 
+                 ; test load indirect with offset
+                 test_ldd:
+000043 8149      	ldd r20, Y+1   ;R 7E FF81
+000044 8151      	ldd r21, Z+1   ;R 2C FFB1
+                 
+                 
+                 ; test store direct
+                 test_sts:
+000045 9330 ff02 	sts $FF02, r19 ;W 7E FF02
+                 
+                 
+                 ; test load direct
+                 test_lds:
+000047 9130 ff01 	lds r19, $FF01 ;R F8 FF01
+                 
+                 
+                 ; test move
+                 test_mov:
+000049 e101      	ldi r16, $11   ; r16=11
+00004a e318      	ldi r17, $38   ; r17=38
+00004b 2f01      	mov r16, r17   ; r16=38
+00004c 930f      	push r16       ;W 38 FFFF
+00004d 910f      	pop r16        ;R 38 FFFF
+                 
+                 ;;; test BSET, BCLR, BRBS, BRBC, and IN ;;;
+                 test_BSET0:
+00004e 9408      	BSET 0 ; C = 1
+00004f b6af      	IN r10, SREG ; Flags are -------1. Load the status register to r10.
+000050 92af      	PUSH r10 ;W 01 FFFF
+000051 90af      	POP r10  ;R 01 FFFF
+000052 f008      	BRBS 0, test_BCLR0 ; if C = 1, skip NOP
+000053 0000      	NOP 
+                 test_BCLR0:
+000054 9488      	BCLR 0 ; C = 0
+000055 b6af      	IN r10, SREG ; Flags are -------0
+000056 92af      	PUSH r10 ;W 00 FFFF
+000057 90af      	POP r10  ;R 00 FFFF
+000058 f408      	BRBC 0, test_BSET1 ; if C = 0, skip NOP
+000059 0000      	NOP
+                 test_BSET1:
+00005a 9418      	BSET 1 ; Z = 1
+00005b b6af      	IN r10, SREG ; Flags are ------1-
+00005c 92af      	PUSH r10 ;W 02 FFFF
+00005d 90af      	POP r10  ;R 02 FFFF
+00005e f009      	BRBS 1, test_BCLR1 ; if Z = 1, skip NOP
+00005f 0000      	NOP 
+                 test_BCLR1:
+000060 9498      	BCLR 1	; Z = 0
+000061 b6af      	IN r10, SREG; Flags are -------0-
+000062 92af      	PUSH r10 ;W 00 FFFF
+000063 90af      	POP r10  ;R 00 FFFF
+000064 f409      	BRBC 1, test_BSET2 ; if Z = 0, skip NOP
+000065 0000      	NOP
+                 test_BSET2:
+000066 9428      	BSET 2 ; N = 1
+000067 b6af      	IN r10, SREG ; Flags are -----1--
+000068 92af      	PUSH r10 ;W 04 FFFF
+000069 90af      	POP r10  ;R 04 FFFF
+00006a f00a      	BRBS 2, test_BCLR2 ; if N = 1, skip NOP
+00006b 0000      	NOP 
+                 test_BCLR2:
+00006c 94a8      	BCLR 2	; N = 0
+00006d b6af      	IN r10, SREG; Flags are ------0--
+00006e 92af      	PUSH r10 ;W 00 FFFF
+00006f 90af      	POP r10  ;R 00 FFFF
+000070 f40a      	BRBC 2, test_BSET3 ; if N = 0, skip NOP
+000071 0000      	NOP
+                 test_BSET3:
+000072 9438      	BSET 3 ; V = 1
+000073 b6af      	IN r10, SREG ; Flags are ----1---
+000074 92af      	PUSH r10 ;W 08 FFFF
+000075 90af      	POP r10  ;R 08 FFFF
+000076 f00b      	BRBS 3, test_BCLR3 ; if V = 1, skip NOP
+000077 0000      	NOP 
+                 test_BCLR3:
+000078 94b8      	BCLR 3	; V = 0
+000079 b6af      	IN r10, SREG; Flags are -----0---
+00007a 92af      	PUSH r10 ;W 00 FFFF
+00007b 90af      	POP r10  ;R 00 FFFF
+00007c f40b      	BRBC 3, test_BSET4 ; if V = 0, skip NOP
+00007d 0000      	NOP
+                 test_BSET4:
+00007e 9448      	BSET 4 ; S = 1
+00007f b6af      	IN r10, SREG ; Flags are ---1----
+000080 92af      	PUSH r10 ;W 10 FFFF
+000081 90af      	POP r10  ;R 10 FFFF
+000082 f00c      	BRBS 4, test_BCLR4 ; if S = 1, skip NOP
+000083 0000      	NOP 
+                 test_BCLR4:
+000084 94c8      	BCLR 4	; S = 0
+000085 b6af      	IN r10, SREG; Flags are ---0-----
+000086 92af      	PUSH r10 ;W 00 FFFF
+000087 90af      	POP r10  ;R 00 FFFF
+000088 f40c      	BRBC 4, test_BSET5 ; if S = 0, skip NOP
+000089 0000      	NOP
+                 test_BSET5:
+00008a 9458      	BSET 5 ; H = 1
+00008b b6af      	IN r10, SREG ; Flags are --1-----
+00008c 92af      	PUSH r10 ;W 20 FFFF
+00008d 90af      	POP r10  ;R 20 FFFF
+00008e f00d      	BRBS 5, test_BCLR5 ; if H = 1, skip NOP
+00008f 0000      	NOP 
+                 test_BCLR5:
+000090 94d8      	BCLR 5	; H = 0
+000091 b6af      	IN r10, SREG; Flags are --0------
+000092 92af      	PUSH r10 ;W 00 FFFF
+000093 90af      	POP r10  ;R 00 FFFF
+000094 f40d      	BRBC 5, test_BSET6 ; if H = 0, skip NOP
+000095 0000      	NOP
+                 test_BSET6:
+000096 9468      	BSET 6 ; T = 1
+000097 b6af      	IN r10, SREG ; Flags are -1------
+000098 92af      	PUSH r10 ;W 40 FFFF
+000099 90af      	POP r10  ;R 40 FFFF
+00009a f00e      	BRBS 6, test_BCLR6 ; if T = 1, skip NOP
+00009b 0000      	NOP 
+                 test_BCLR6:
+00009c 94e8      	BCLR 6	; T = 0
+00009d b6af      	IN r10, SREG; Flags are -0-------
+00009e 92af      	PUSH r10 ;W 00 FFFF
+00009f 90af      	POP r10  ;R 00 FFFF
+0000a0 f40e      	BRBC 6, test_BSET7 ; if T = 0, skip NOP
+0000a1 0000      	NOP
+                 test_BSET7:
+0000a2 9478      	BSET 7 ; I = 1
+0000a3 b6af      	IN r10, SREG ; Flags are 1-------
+0000a4 92af      	PUSH r10 ;W 80 FFFF
+0000a5 90af      	POP r10  ;R 80 FFFF
+0000a6 f00f      	BRBS 7, test_BCLR7 ; if I = 1, skip NOP
+0000a7 0000      	NOP 
+                 test_BCLR7:
+0000a8 94f8      	BCLR 7	; I = 0
+0000a9 b6af      	IN r10, SREG; Flags are 0--------
+0000aa 92af      	PUSH r10 ;W 00 FFFF
+0000ab 90af      	POP r10  ;R 00 FFFF
+0000ac f40f      	BRBC 7, test_ADC ; if I = 0, skip NOP
+0000ad 0000      	NOP
+                 
+                 ;;;; test ADC (Add with Carry) ;;;;
+                 test_ADC:
+0000ae e10e      	LDI r16, $1E	; r1 = $1E
+0000af e14b      	LDI r20, $1B	; r0 = $1B
+0000b0 9408      	BSET 0		;  C = 1
+0000b1 1f04      	ADC r16, r20	; r1($3A) = r1($1E) + r0($1B) + C(1)
+0000b2 930f      	PUSH r16 ;W 3A FFFF
+0000b3 910f      	POP r16  ;R 3A FFFF
+0000b4 b74f      	IN r20, SREG ; load the status register. should be 00100000
+0000b5 934f      	PUSH r20    ;W 20 FFFF
+0000b6 914f      	POP r20		;R 20 FFFF
+                 
+0000b7 e10e      	LDI r16, $1E	; r1 = $1E
+0000b8 e14b      	LDI r20, $1B	; r0 = $1B
+0000b9 9488      	BCLR 0		;  C = 0
+0000ba 1f04      	ADC r16, r20	; r1($39) = r1($1E) + r0($1B) + C(0)
+0000bb 930f      	PUSH r16     ;W 39 FFFF
+0000bc 910f      	POP r16      ;R 39 FFFF
+0000bd b74f      	IN r20, SREG ; load the status register. Flags should be 00100000
+0000be 934f      	PUSH r20	;W 20 FFFF
+0000bf 914f      	POP r20		;R 20 FFFF
+                 
+0000c0 e70f      	LDI r16, $7F ; r1 = b01111111
+0000c1 e74f      	LDI r20, $7F ; r0 = b01111111
+0000c2 9488      	BCLR 0		; C = 0
+0000c3 1f04      	ADC r16, r20  ; r1 = r1($7F) + r0($7F) + 0 = b11111110 = -2. Overflow
+0000c4 930f      	PUSH r16     ;W FE FFFF
+0000c5 910f      	POP r16      ;R FE FFFF
+0000c6 b74f      	IN r20, SREG ; load the status register. Flags should be 00101100
+0000c7 934f      	PUSH r20    ;W 2C FFFF
+0000c8 914f      	POP r20     ;R 2C FFFF
+                 
+                 ;;; test ADD (Add without Carry) ;;;
+                 test_ADD:
+0000c9 9408      	BSET 0		; C = 1
+0000ca e304      	LDI r16, $34	; r1 = $34 
+0000cb e049      	LDI r20, $09	; r0 = $09
+0000cc 0f04      	ADD r16, r20	; r1($3D) = r1($34) + r0($09)
+0000cd 930f      	PUSH r16     ;W 3D FFFF
+0000ce 910f      	POP r16      ;R 3D FFFF 
+0000cf b74f      	IN r20, SREG ; load the status register. Flags should be 00000000
+0000d0 934f      	PUSH r20	;W 00 FFFF
+0000d1 914f      	POP r20		;R 00 FFFF
+                 	
+0000d2 9488      	BCLR 0		; C = 0
+0000d3 e800      	LDI r16, $80	; r1 = b10000000 = -128
+0000d4 e840      	LDI r20, $80	; r0 = b10000000 = -128
+0000d5 0f04      	ADD r16, r20	; r1 = r1 + r0 = b00000000. Carry, Zero, Overflow, Corrected Sign should be set.
+0000d6 930f      	PUSH r16     ;W 00 FFFF
+0000d7 910f      	POP r16      ;R 00 FFFF
+0000d8 b74f      	IN r20, SREG ; load the status register. Flags should be 00011011
+0000d9 934f      	PUSH r20	;W 1B FFFF
+0000da 914f      	POP r20		;R 1B FFFF
+                 
+                 ;;;	test ADIW (Add Immediate to Word) ;;;
+                 test_ADIW:
+0000db ef90      	LDI r25, $F0
+0000dc ee80      	LDI r24, $E0
+0000dd 9603      	ADIW r25:r24, 3	; Add 3 to r25:r24.
+0000de 939f      	PUSH r25	;W F0 FFFF
+0000df 919f      	POP r25		;R F0 FFFF
+0000e0 938f      	PUSH r24	;W E3 FFFF
+0000e1 918f      	POP r24		;R E3 FFFF
+0000e2 b6af      	IN r10, SREG ; load the status register. Flags should be 00010100 
+0000e3 92af      	PUSH r10    ;W 14 FFFF
+0000e4 90af      	POP r10     ;R 14 FFFF
+                 
+                 ;;;	test AND (Logical AND) ;;;
+                 test_AND:
+0000e5 e695      	LDI r25, $65	; r5 = b01100101
+0000e6 eaac      	LDI r26, $AC	; r6 = b10101100
+0000e7 239a      	AND	r25, r26	; r5 = r5 AND r6 = b00100100
+0000e8 939f      	PUSH r25     ;W 24 FFFF
+0000e9 919f      	POP r25      ;R 24 FFFF
+0000ea b6af      	IN r10, SREG ; load the status register. Flags should be 00000000
+0000eb 92af      	PUSH r10    ;W 00 FFFF
+0000ec 90af      	POP r10     ;R 00 FFFF
+0000ed e637      	LDI r19, $67	; r9 = b01100111
+0000ee e041      	LDI r20,$01	; r10 = b00000001
+0000ef 2334      	AND r19, r20	; r9 = r9 AND r10 = b00000001
+0000f0 933f      	PUSH r19     ;W 01 FFFF
+0000f1 913f      	POP r19      ;R 01 FFFF
+0000f2 b6af      	IN r10, SREG ; load the status register. Flags should be 00000000
+0000f3 92af      	PUSH r10    ;W 00 FFFF
+0000f4 90af      	POP r10     ;R 00 FFFF
+                 
+                 ;;; test ANDI (Logical AND with Immediate) ;;;
+                 test_ANDI:
+0000f5 e49d      	LDI r25,	$4D	; r5 = b01001101
+0000f6 7693      	ANDI r25, $63; r5 = r5 AND $63(b01100011) = b01000001
+0000f7 939f      	PUSH r25     ;W 41 FFFF
+0000f8 919f      	POP r25      ;R 41 FFFF
+0000f9 b6af      	IN r10, SREG ; load the status register. Flags should be 00000000
+0000fa 92af      	PUSH r10    ;W 00 FFFF
+0000fb 90af      	POP r10     ;R 00 FFFF
+0000fc 7090      	ANDI r25, $00 ; r5 = r5 AND 0 = b00000000
+0000fd 939f      	PUSH r25     ;W 00 FFFF
+0000fe 919f      	POP r25      ;R 00 FFFF
+0000ff b6af      	IN r10, SREG ; load the status register. Flags should be 00000010
+000100 92af      	PUSH r10    ;W 02 FFFF
+000101 90af      	POP r10     ;R 02 FFFF
+                 
+                 ;;; test ASR (Arithmetic Shift Right) ;;; 
+                 ; keep bit-7 and load bit-0 into Carry
+                 test_ASR:
+000102 9488      	BCLR 0		; C = 0
+000103 e307      	LDI r16, $37	; r6 = b00110111 = 55
+000104 9505      	ASR r16		; r6 = b00011011, set C = 1
+000105 b6af      	IN r10, SREG ; load the status register. Flags should be 00011001
+000106 92af      	PUSH r10    ;W 19 FFFF
+000107 90af      	POP r10     ;R 19 FFFF
+                 
+                 ;;; BCLR is already tested above ;;;
+                 
+                 ;;; test BLD(Bit load from T to register) ;;;
+                 test_BLD:
+000108 e090      	LDI r25, 0 ; r5 = 0
+000109 9468      	BSET 6	  ; T = 1
+00010a f993      	BLD	r25, 3 ; Load T flag into bit-3 of r5. r5 = 00001000
+00010b 939f      	PUSH r25	  ;W 08 FFFF
+00010c 919f      	POP r25	  ;R 08 FFFF
+                 
+                 ;;; BSET is already tested above ;;;
+                 
+                 ;;; test BST(Bit store from register to T) ;;;
+                 test_BST:
+00010d 94e8      	BCLR 6		; T = 0
+00010e ef1f      	LDI r17, $FF ; r7 = 11111111
+00010f fb12      	BST r17, 2	; Store bit 2 of r7 in T (T=1, status register = 01001001)
+000110 b6af      	IN r10, SREG
+000111 92af      	PUSH r10    ;W 59 FFFF
+000112 90af      	POP r10     ;R 59 FFFF
+000113 e017      	LDI r17, $07	; r7 = 11110111
+000114 fb13      	BST r17, 3	; Store bit 3 of r7 in T (T=0, status register = 00001001)
+000115 b6af      	IN r10, SREG
+000116 92af      	PUSH r10    ;W 19 FFFF
+000117 90af      	POP r10     ;R 19 FFFF
+                 
+                 ;;; test COM(One's complement) ;;;
+                 test_COM:
+000118 9488      	BCLR 0 ; Clear Carry
+000119 e14e      	LDI r20, $1E ; r10 = 00011110
+00011a 9540      	COM r20		 ; r10 = 11100001 (r10 = not r10)
+00011b b6af      	IN r10, SREG ; load the status register. Flags should be 00010101
+00011c 92af      	PUSH r10     ;W 03 FFFF
+00011d 90af      	POP r10      ;R 03 FFFF
+                 
+                 ;;; test CP(Compare) ;;;
+                 test_CP:
+00011e ef81      	LDI r24, $F1 ; r4 = xF1
+00011f ef91      	LDI r25, $F1 ; r5 = xF1
+000120 1789      	CP r24, r25   ; r4-r5 = x00, set Z flag
+000121 b6af      	IN r10, SREG ; load the status register. Flags should be 00000010
+000122 92af      	PUSH r10    ;W 02 FFFF
+000123 90af      	POP r10     ;R 02 FFFF
+000124 e085      	LDI r24, $05 ; r4 = x05
+000125 e09f      	LDI r25, $0F	; r5 = x0F
+000126 1789      	CP r24, r25   ; r4-r5 < 0, set C flag
+000127 b6af      	IN r10, SREG ; load the status register. Flags should be 00010101
+000128 92af      	PUSH r10    ;W 35 FFFF
+000129 90af      	POP r10     ;R 35 FFFF
+                 
+                 ;;; test CPC(Compare with Carry) ;;;
+                 test_CPC:
+00012a e083      	LDI r24, $03
+00012b e093      	LDI r25, $03
+00012c 9408      	BSET 0	     ; C = 1
+00012d 0789      	CPC r24, r25   ; r4 - r5 - C < 0
+00012e 938f      	PUSH r24	  ;W 03 FFFF
+00012f 918f      	POP r24       ;R 03 FFFF
+000130 b6af      	IN r10, SREG ; load the status register. Flags should be 00110101
+000131 92af      	PUSH r10     ;W 35 FFFF
+000132 90af      	POP r10      ;R 35 FFFF
+                 
+                 ;;; test CPI(Compare with Immediate) ;;;
+                 test_CPI:
+000133 ea7f      	LDI r23, $AF ; r3 = $AF
+000134 3371      	CPI r23, $31 ; Compare r3 with $31. Do $AF-$31
+000135 937f      	PUSH r23		;W AF FFFF
+000136 917f      	POP r23      ;R AF FFFF
+000137 b6af      	IN r10, SREG ; load the status register. Flags should be 00011000
+000138 92af      	PUSH r10    ;W 18 FFFF
+000139 90af      	POP r10     ;R 18 FFFF
+00013a e071      	LDI r23, $01 ; r3 = $01
+00013b 3071      	CPI r23, $01 ; Compare r3 with $03. Do $01-$01
+00013c b6af      	IN r10, SREG ; load the status register. Flags should be 00000010
+00013d 92af      	PUSH r10    ;W 02 FFFF
+00013e 90af      	POP r10     ;R 02 FFFF
+                 
+                 ;;; test DEC(Decrement) ;;;
+                 test_DEC:
+00013f e062      	LDI r22, $02 ; r12 = $02
+000140 956a      	DEC r22      ; r12 = $02 - $01 = $01 (Decrement by 1)
+000141 936f      	PUSH r22     ;W 01 FFFF
+000142 916f      	POP r22      ;R 01 FFFF
+000143 b6af      	IN r10, SREG ; load status register. Flags should be ---00000
+000144 92af      	PUSH r10     ;W 00 FFFF
+000145 90af      	POP r10      ;R 00 FFFF
+000146 956a      	DEC r22 ; r12 = $01 - $01 = $00 (Decrement by 1)
+000147 936f      	PUSH r22   ;W 00 FFFF
+000148 916f      	POP r22    ;R 00 FFFF
+000149 b6af      	IN r10, SREG ; load status register. Flags should be ---00010
+00014a 92af      	PUSH r10   ;W 02 FFFF
+00014b 90af      	POP r10    ;R 02 FFFF
+                 
+                 ;;; test EOR(Exclusive OR) ;;;
+                 test_EOR:
+00014c eb43      	LDI r20, $B3 ; r10 = 10110011
+00014d e459      	LDI r21, $49 ; r11 = 01001001
+00014e 2745      	EOR r20, r21 ; r10 = r10 XOR r11 = 11111010
+00014f b6af      	IN r10, SREG ; load status register. Flags should be ---1010-
+000150 92af      	PUSH r10 ;W 14 FFFF
+000151 90af      	POP r10  ;R 14 FFFF
+                 
+                 ;;; test INC(Increment) ;;;
+                 test_INC:
+000152 e17a      	LDI r23, $1A ; r3 = 00011010
+000153 9573      	INC r23		; r3 = 00011011
+000154 b6af      	IN r10, SREG ; load status register. Flags should be ---0000-
+000155 92af      	PUSH r10 ;W 00 FFFF
+000156 90af      	POP r10  ;R 00 FFFF
+                 	
+                 ;;; test LSR(Logical shift right) ;;;
+                 test_LSR:
+000157 9488      	BCLR 0 ; clear C flag
+000158 e17f      	LDI r23, $1F ; r3 = 00011111
+000159 9576      	LSR r23 ; r3 = 00001111, C flag = 1
+00015a b6af      	IN r10, SREG ; load status register. Flags should be 00011001
+00015b 92af      	PUSH r10  ;W 19 FFFF
+00015c 90af      	POP r10   ;R 19 FFFF
+                 	
+                 ;;; test NEG(Two's complement) ;;;
+                 test_NEG:
+00015d e253      	LDI r21, $23 ; r1 = b00100011
+00015e 9551      	NEG r21 ; take 2's complement of r1. r1 = $00 -$23 = $DD = b11011101 
+00015f 935f      	PUSH r21 ;W DD FFFF
+000160 915f      	POP r21  ;R DD FFFF
+000161 b6af      	IN r10, SREG ; load status register. Flags should be 00110101
+000162 92af      	PUSH r10 ;W 35 FFFF
+000163 90af      	POP r10  ;R 35 FFFF
+                 
+                 ;;; test OR(Logical OR) ;;;
+                 test_OR:
+000164 ec5f      	LDI r21, $CF ; r1 = b11001111
+000165 e16a      	LDI r22, $1A ; r2 = b00011010
+000166 2b56      	OR r21, r22 ; r1 = r1 or r2 = b11011111
+000167 935f      	PUSH r21 ;W DF FFFF
+000168 915f      	POP r21  ;R DF FFFF
+000169 b6af      	IN r10, SREG ; load status register. Flags should be 00110101
+00016a 92af      	PUSH r10 ;W 35 FFFF
+00016b 90af      	POP r10  ;R 35 FFFF
+                 
+                 ;;; test ORI(Logical OR with immediate) ;;;
+                 test_ORI:
+00016c ea51      	LDI r21, $A1 ; r1 = b10100001
+00016d 635a      	ORI r21, $3A ; r1 = b10100001 or b00111010 = b10111011
+00016e 935f      	PUSH r21 ;W BB FFFF
+00016f 915f      	POP r21  ;R BB FFFF
+000170 b6af      	IN r10, SREG ; load status register. Flags should be 00110101
+000171 92af      	PUSH r10 ;W 35 FFFF
+000172 90af      	POP r10  ;R 35 FFFF
+                 
+                 ;;; test ROR(Rotate right through carry) ;;;
+                 test_ROR:
+000173 9408      	BSET 0 ; set C flag
+000174 e652      	LDI r21, $62 ; r1 = b01100010
+000175 9557      	ROR r21 ; rotate r1 through carry. r1 = 10110001, C = 0
+000176 935f      	PUSH r21 ;W B1 FFFF
+000177 915f      	POP r21  ;R B1 FFFF
+000178 b6af      	IN r10, SREG ; load status register. Flags should be 00101100
+000179 92af      	PUSH r10 ;W 2C FFFF
+00017a 90af      	POP r10  ;R 2C FFFF
+                 
+                 ;;; test SBC(Substract with carry) ;;;
+                 test_SBC:
+00017b 9408      	BSET 0 ; set C flag
+00017c ea5b      	LDI r21, $AB ; r1 = 10101011
+00017d e360      	LDI r22, $30 ; r2 = 00110000
+00017e 0b56      	SBC r21, r22 ; r1 = r1 - r2 - C = $AB - $30 - $01 = $7A
+00017f 935f      	PUSH r21  ;W 7A FFFF
+000180 915f      	POP r21   ;R 7A FFFF
+000181 b6af      	IN r10, SREG ; load status register. Flags should be 00011000
+000182 92af      	PUSH r10 ;W 18 FFFF
+000183 90af      	POP r10  ;R 18 FFFF
+000184 9488      	BCLR 0 ; clear C flag
+000185 ec5d      	LDI r21, $CD ; r1 = 11001101
+000186 ec6d      	LDI r22, $CD ; r2 = 11001101
+000187 0b56      	SBC r21, r22 ; r1 = r1 - r2 - C = $CD - $CD - $00 = $00
+000188 935f      	PUSH r21  ;W 00 FFFF
+000189 915f      	POP r21   ;R 00 FFFF
+00018a b6af      	IN r10, SREG ; load status register. Flags should be 00000010
+00018b 92af      	PUSH r10  ;W 02 FFFF
+00018c 90af      	POP r10   ;R 02 FFFF
+                 
+                 ;;; test SBCI(Substract immediate with carry) ;;;
+                 test_SBCI:
+00018d 9408      	BSET 0 ; set C flag
+00018e eb5c      	LDI r21, $BC ; r1 = 10111100
+00018f 4450      	SBCI r21, $40 ; r1 = r1 - r2 - C = $BC - $40 - $01 = $7A
+000190 935f      	PUSH r21 ;W 7B FFFF
+000191 915f      	POP r21  ;R 7B FFFF
+000192 b6af      	IN r10, SREG ; load status register. Flags should be 00011000
+000193 92af      	PUSH r10 ;W 18 FFFF
+000194 90af      	POP r10  ;R 18 FFFF
+000195 9488      	BCLR 0 ; clear C flag
+000196 ee5f      	LDI r21, $EF ; r1 = 11001101
+000197 4e5f      	SBCI r21,$EF ; r1 = r1 - r2 - C = $EF - $EF - $00 = $00
+000198 935f      	PUSH r21  ;W 00 FFFF
+000199 915f      	POP r21   ;R 00 FFFF
+00019a b6af      	IN r10, SREG ; load status register. Flags should be 00000010
+00019b 92af      	PUSH r10 ;W 02 FFFF
+00019c 90af      	POP r10  ;R 02 FFFF
+                 
+                 ;;; test SBIW(Substract immediate from word) ;;;
+                 ; only works on upper four pairs of registers.
+                 ; the immediate value (K)'s size is 6 bits.
+                 test_SBIW:
+00019d e39f      	LDI r25, $3F ; r25 = $DF
+00019e e58a      	LDI r24, $5A ; r24 = $5A
+00019f 970c      	SBIW r25:r24, $0C ; r25:r24 - K = $DF5A - $0C = $DF4E
+0001a0 938f      	PUSH r24  ;W 4E FFFF
+0001a1 918f      	POP r24   ;R 4E FFFF
+0001a2 b6af      	IN r10, SREG ; load status register. Flags should be 00000000
+0001a3 92af      	PUSH r10 ;W 00 FFFF
+0001a4 90af      	POP r10  ;R 00 FFFF
+                 	
+                 ;;; test SUB(Substract with carry) ;;;
+                 test_SUB:
+0001a5 eb73      	LDI r23, $B3 ; r3 = $B3
+0001a6 e182      	LDI r24, $12 ; r4 = $12
+0001a7 1b78      	SUB r23, r24  ; r3 = r3 - r4 = $A1
+0001a8 937f      	PUSH r23 ;W A1 FFFF
+0001a9 917f      	POP r23  ;R A1 FFFF
+0001aa b6af      	IN r10, SREG ; load status register. Flgas should be 00010100
+0001ab 92af      	PUSH r10 ;W 14 FFFF
+0001ac 90af      	POP r10  ;R 14 FFFF
+                 
+0001ad e071      	LDI r23, $01 ; r3 = $01
+0001ae e08a      	LDI r24, $0A ; r4 = $0A
+0001af 1b78      	SUB r23, r24 ; r3 = r3 - r4 = $F7. Half-carry(borrow) and Carry should be set.
+0001b0 937f      	PUSH r23 ;W F7 FFFF
+0001b1 917f      	POP r23  ;R F7 FFFF
+0001b2 b6af      	IN r10, SREG; load status register. Flags should be 00110101
+0001b3 92af      	PUSH r10 ;W 35 FFFF
+0001b4 90af      	POP r10  ;R 35 FFFF
+                 	
+                 ;;; test SUBI(Substract immediate with carry) ;;;
+                 test_SUBI:
+0001b5 ec2a      	LDI r18, $CA
+0001b6 5a21      	SUBI r18, $A1 ; r8 = r8 - K = $CA - $A1 = $29. Since the absolute value of K is larger than r8, should set C flag.
+0001b7 932f      	PUSH r18 ;W 29 FFFF
+0001b8 912f      	POP r18  ;R 29 FFFF
+0001b9 b6af      	IN r10, SREG ; load status register. Flags should be 00000000
+0001ba 92af      	PUSH r10 ;W 00 FFFF
+0001bb 90af      	POP r10  ;R 00 FFFF
+0001bc e820      	LDI r18, $80	
+0001bd 5420      	SUBI r18, $40 ; r8 = r8 - K = $80 - $40 = $40. Overflow happens.
+0001be 932f      	PUSH r18 ;W 40 FFFF
+0001bf 912f      	POP r18  ;R 40 FFFF
+0001c0 b6af      	IN r10, SREG ; load status register. Flags should be 00011000
+0001c1 92af      	PUSH r10 ;W 18 FFFF
+0001c2 90af      	POP r10  ;R 18 FFFF
+0001c3 e12f      	LDI r18, $1F 
+0001c4 512f      	SUBI r18, $1F ; r8 = r8 - K = $00. Should set Z flag
+0001c5 932f      	PUSH r18 ;W 00 FFFF
+0001c6 912f      	POP r18  ;R 00 FFFF
+0001c7 b6af      	IN r10, SREG ; load status register. Flags should be 00000010
+0001c8 92af      	PUSH r10 ;W 02 FFFF
+0001c9 90af      	POP r10  ;R 02 FFFF
+                 
+                 ;;; test SWAP(Swap nibbles) ;;;
+                 test_SWAP:
+0001ca ea9d      	LDI r25, $AD ; r5 = xAD
+0001cb 9592      	SWAP r25 ; r5 = xDA
+0001cc 939f      	PUSH r25	;W DA FFFF
+0001cd 919f      	POP r25  ;R DA FFFF
+                 
+                 ;;; test JMP(Jump) ;;;
+                 test_JMP:
+0001ce 940c 01d1 	JMP test_RJMP ; jump to test_RJMP
+0001d0 e140      	LDI r20, $10
+                 
+                 ;;; test RJMP(Relative jump) ;;;
+                 test_RJMP:
+0001d1 c001      	RJMP test_IJMP ; relative jump to test_IJMP
+0001d2 e140      	LDI r20, $10
+                 
+                 ;;; test IJMP(Indirect jump to [Z]) ;;;
+                 test_IJMP:
+0001d3 e0f1      	LDI r31, $01
+0001d4 ede7      	LDI r30, $D7 ; Set r31:r30 (Z register) = $01D7
+0001d5 9409      	IJMP ; PC = Z(15:0) = $01D7. Jump to test_CALL(assuming test_CALL's PC is $01D7)
+0001d6 e140      	LDI r20, $10
+                 	
+                 ;;; test CALL(Call subroutine), RET(Subroutine return) ;;;
+                 test_CALL:
+0001d7 e050      	LDI r21, $00 ; r1 = $00
+0001d8 940e 01dc 	CALL CALL_check ; go to CALL_check. unconditional branch
+0001da 940c 01de 	JMP test_RCALL ; after returning from subroutine, jump to the next test
+                 CALL_check:
+0001dc e051      	LDI r21, $01
+0001dd 9508      	RET
+                 
+                 ;;; test RCALL(Relative call subroutine), RET(Subroutine return) ;;;
+                 test_RCALL:
+0001de e050      	LDI r21, $00
+0001df d002      	RCALL RCALL_subroutine ; go to subroutine
+0001e0 940c 01e4 	JMP test_ICALL ; after returning from subroutine, jump to the next test
+                 RCALL_subroutine:
+0001e2 e051      	LDI r21, $01
+0001e3 9508      	RET
+                 
+                 ;;; test ICALL(Indirect call to [z]), RET(Subroutine return) ;;;
+                 test_ICALL:
+0001e4 e0f1      	LDI r31, $01
+0001e5 eee9      	LDI r30, $E9
+0001e6 9509      	ICALL ; PC = Z(15:0) = $01E9. go to ICALL_subroutine(assuming its PC is $01E9)
+0001e7 940c 01eb 	JMP test_RETI ; after returning from subroutine, jump to next test
+                 ICALL_subroutine:
+0001e9 ef5f      	LDI r21, $FF
+0001ea 9508      	RET
+                 
+                 ;;; test RETI(Interrupt return) ;;;
+                 test_RETI:
+0001eb 94f8      	BCLR 7	; clear I flag
+0001ec 940e 01f3 	CALL RETI_check ; call the subroutine
+0001ee b6af      	IN r10, SREG ; load status register to check I flag
+0001ef 92af      	PUSH r10 ;W 82 FFFF
+0001f0 90af      	POP r10  ;R 82 FFFF
+0001f1 940c 01f4 	JMP test_CPSE ; go to next test
+                 RETI_check:
+0001f3 9518      	RETI ; return and set I flag
+                 
+                 ;;; BRBC and BRBS are already tested above ;;;
+                 
+                 ;;; test CPSE(Compare, skip if equal) ;;;
+                 test_CPSE:
+0001f4 e170      	LDI r23, $10
+0001f5 e180      	LDI r24, $10
+0001f6 1378      	CPSE r23, r24 ; Since r3 = r4, skip JMP
+0001f7 940c 01f4 	JMP test_CPSE
+0001f9 1378      	CPSE r23, r24 ; Since r3 != r4, don't skip
+0001fa ec4c      	LDI r20, $CC
+                 
+                 ;;; test SBRC(Skip if bit in register cleared) ;;;
+                 test_SBRC:
+0001fb e140      	LDI r20, $10 ; r0 = b00010000, bit-4 = '1'
+0001fc fd44      	SBRC r20, 4 ; should not skip since bit-4 of r0 is not cleared
+0001fd e545      	LDI r20, $55
+0001fe fd43      	SBRC r20, 3 ; should skip since bit-3 of r0 is cleared
+0001ff 940c 01fb 	JMP test_SBRC
+000201 e040      	LDI r20, $00 ; r0 = b00000000, bit-4 = '0'
+000202 fd44      	SBRC r20, 4 ; should skip NOP since bit-4 of r0 is now cleared
+000203 940c 01fb 	JMP test_SBRC
+                 
+                 ;;; test SBRS(Skip if bit in register set) ;;;
+                 test_SBRS:
+000205 ef5f      	LDI r21, $FF ; r1 = b11111111
+000206 ff53      	SBRS r21, 3 ; should skip NOP since bit-3 is set
+000207 940c 0205 	JMP test_SBRS
+000209 ef57      	LDI r21, $F7 ; r1 = b11110111
+00020a ff53      	SBRS r21, 3 ; should not skip NOP since bit-3 is not set
+00020b ef5f      	LDI r21, $FF
+                 
+                 ;;; All tests over ;;;
+                 ; Clear all flags (Not Necessary)
+                 test_OVER:
+00020c 9488      	BCLR 0
+00020d 9498      	BCLR 1
+00020e 94a8      	BCLR 2
+00020f 94b8      	BCLR 3
+000210 94c8      	BCLR 4
+000211 94d8      	BCLR 5
+000212 94e8      	BCLR 6
+000213 94f8      	BCLR 7
+
+
+RESOURCE USE INFORMATION
+------------------------
+
+Notice:
+The register and instruction counts are symbol table hit counts,
+and hence implicitly used resources are not counted, eg, the
+'lpm' instruction without operands implicitly uses r0 and z,
+none of which are counted.
+
+x,y,z are separate entities in the symbol table and are
+counted separately from r26..r31 here.
+
+.dseg memory usage only counts static data declared with .byte
+
+Register use summary:
+r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 r5 :   0 r6 :   0 r7 :   0 
+r8 :   0 r9 :   0 r10: 150 r11:   0 r12:   0 r13:   0 r14:   0 r15:   0 
+r16:  36 r17:  16 r18:  22 r19:  13 r20:  50 r21:  53 r22:  13 r23:  21 
+r24:  23 r25:  31 r26:   3 r27:   1 r28:   1 r29:   1 r30:   3 r31:   3 
+x  :  12 y  :  14 z  :  14 
+Registers used: 20 out of 35 (57.1%)
+
+Instruction use summary:
+.lds  :   0 .sts  :   0 adc   :   3 add   :   2 adiw  :   1 and   :   2 
+andi  :   2 asr   :   1 bclr  :  34 bld   :   1 brbc  :   8 brbs  :   8 
+brcc  :   0 brcs  :   0 break :   0 breq  :   0 brge  :   0 brhc  :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
+brne  :   0 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :  15 bst   :   2 call  :   2 cbi   :   0 cbr   :   0 
+clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
+clt   :   0 clv   :   0 clz   :   0 com   :   1 cp    :   2 cpc   :   1 
+cpi   :   2 cpse  :   2 dec   :   2 elpm  :   0 eor   :   1 fmul  :   0 
+fmuls :   0 fmulsu:   0 icall :   1 ijmp  :   1 in    :  55 inc   :   1 
+jmp   :   9 ld    :  15 ldd   :   2 ldi   :  88 lds   :   1 lpm   :   0 
+lsl   :   0 lsr   :   1 mov   :   1 movw  :   0 mul   :   0 muls  :   0 
+mulsu :   0 neg   :   1 nop   :  16 or    :   1 ori   :   1 out   :   0 
+pop   :  93 push  :  93 rcall :   1 ret   :   3 reti  :   1 rjmp  :   1 
+rol   :   0 ror   :   1 sbc   :   2 sbci  :   2 sbi   :   0 sbic  :   0 
+sbis  :   0 sbiw  :   1 sbr   :   0 sbrc  :   3 sbrs  :   2 sec   :   0 
+seh   :   0 sei   :   0 sen   :   0 ser   :   0 ses   :   0 set   :   0 
+sev   :   0 sez   :   0 sleep :   0 spm   :   0 st    :  21 std   :   2 
+sts   :   1 sub   :   2 subi  :   3 swap  :   1 tst   :   0 wdr   :   0 
+
+Instructions used: 53 out of 114 (46.5%)
+
+Memory use summary [bytes]:
+Segment   Begin    End      Code   Data   Used    Size   Use%
+---------------------------------------------------------------
+[.cseg] 0x000000 0x000428   1064      0   1064 unknown      -
+[.dseg] 0x000060 0x000060      0      0      0 unknown      -
+[.eseg] 0x000000 0x000000      0      0      0 unknown      -
+
+Assembly complete, 0 errors, 0 warnings
