@@ -6,7 +6,7 @@ use ieee.numeric_std.all;
 --   AVR_CPU_TB
 --
 -- Description: 
---   This is a testbench that thoroughly tests AVR_CPU.
+--   This is the testbench that thoroughly tests AVR_CPU.
 --   AVR_CPU is an 8-bit RISC harvard architecture CPU that implements most of the instructions listed in
 --	 ATMEL AVR Instruction Set Manual. It also satisfies the required number of clock cycles taken for each 
 --   instruction.
