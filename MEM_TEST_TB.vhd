@@ -538,7 +538,7 @@ begin
         end if;
         wait for 50 ns;
      end loop;
-     
+    
     END_SIM <= TRUE; 
     wait;
 end process;
