@@ -443,7 +443,7 @@ begin
                     report "Result error at test vector " & integer'image(i)
                     severity ERROR;
             end if;
-                
+            
             if i > 0 then
                 -- check status accuracy (delayed by 1 clock)
                 assert(std_match(StatReg, StatRegTestVector(i-1)))
