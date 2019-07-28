@@ -319,7 +319,7 @@ signal RegAOut_Test_Vector : RegOut_Test_Vector_Type := ("00000000",
                                                          "00111101" -- x3D
                                                          );
 
--- Testvector for RegBOut                                                        
+-- Testvector for RegBOut                                                       
 signal RegBOut_Test_Vector : RegOut_Test_Vector_Type := ("00000000",
                                                          "00000000",
                                                          "00000000",
