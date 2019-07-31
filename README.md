@@ -4,7 +4,7 @@ Designed and implemented an 8-bit Harvard Architecture CPU that is able to perfo
 
 The control unit contains a state machine to decode the instructions that take different number of cycles.
 While *most* of ALU instructions take single cycle, most of Load/Store and PUSH/POP instructions take 2 cycles.
-Branch instructions such as JMP, CALL, RET take 3 or 4 cycles since while the size of program addresses is a word(16-bits), the CPU can load/store only 8 bits at a time. These branch instructions need to complete updating the Stack Pointers as well.
+Branch instructions such as JMP, CALL, RET take 3 or 4 cycles since while the size of program addresses is a word(16-bits), the CPU can load/store only 8 bits at a time. These branch instructions perform updating the Stack Pointers as well.
 Skip instructions such as CPSE, SBRC, SBRS take different number of cycles depending on the size of instruction that is to be skipped. For example, if the instruction to be skipped is a two-word instruction instead of a one-word instruction, then the skip instruction takes one extra cycle since the program counter(PC) has to increment one more time.
 
 The CPU also supports memory mapping of registers and I/O ports into the data memory space.
