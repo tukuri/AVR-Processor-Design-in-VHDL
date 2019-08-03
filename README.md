@@ -1,6 +1,6 @@
 # AVR-CPU-Design-in-VHDL
 
-Designed and implemented an 8-bit Harvard Architecture CPU that is able to perform most of the operations (including multi-cycle operations) on the AVR instruction set and also meets the specifications (such as number of cycles for each operation) of the AVR instruction set.
+Designed and implemented an 8-bit Harvard Architecture CPU that is able to perform most of the instructions (including multi-cycle instructions) on the AVR instruction set and also meets the specifications of the AVR instruction set.
 
 The control unit contains a state machine to decode the instructions that take different number of cycles.
 While *most* of ALU instructions take single cycle, most of Load/Store and PUSH/POP instructions take 2 cycles.
