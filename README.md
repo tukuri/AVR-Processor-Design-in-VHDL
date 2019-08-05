@@ -1,4 +1,4 @@
-# AVR-CPU-Design-in-VHDL
+# AVR-Processor-Design-in-VHDL
 
 Designed and implemented an 8-bit CPU for Atmel AVR microcontroller, which is able to perform most of the instructions (including multi-cycle instructions) on the AVR instruction set and also meets the specifications of the AVR instruction set. Program memory access units, Data memory access units, program memory, and data memory were also implemented. Note that the Atmel AVR is an 8-bit RISC Harvard architecture microcontroller.
 
