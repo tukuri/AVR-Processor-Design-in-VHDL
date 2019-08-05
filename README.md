@@ -1,7 +1,6 @@
 # AVR-CPU-Design-in-VHDL
 
-Designed and implemented an 8-bit CPU for Atmel AVR microcontroller, which is able to perform most of the instructions (including multi-cycle instructions) on the AVR instruction set and also meets the specifications of the AVR instruction set.
-The Atmel AVR is an 8-bit RISC Harvard architecture microcontroller.
+Designed and implemented an 8-bit CPU for Atmel AVR microcontroller, which is able to perform most of the instructions (including multi-cycle instructions) on the AVR instruction set and also meets the specifications of the AVR instruction set. Program memory access units, Data memory access units, program memory, and data memory were also implemented. Note that the Atmel AVR is an 8-bit RISC Harvard architecture microcontroller.
 
 The control unit contains a state machine to decode the instructions that take different number of cycles.
 While *most* of ALU instructions take single cycle, most of Load/Store and PUSH/POP instructions take 2 cycles.
