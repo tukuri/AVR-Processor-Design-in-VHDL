@@ -11,12 +11,12 @@ use xil_defaultlib.constants.all;
 -- 	 RegisterArray
 --
 -- Description: 
--- 	 This is an entity for the general purpose register set. The register set has NUM_REGS registers. 
+--   This is an entity for the general purpose register set. The register set has NUM_REGS registers. 
 --   This includes both the standard registers (r0-r31) and the I/O registers (64).
 --
---	 It receives data from RegIn to write the value into a desired register. SelIn signal is decoded to select
---	 the register to write. EnableIn is set when writing a register and reset when not writing a register.
---	 In case of instructions that do not save the result in a register, EnableIn will be reset.
+--   It receives data from RegIn to write the value into a desired register. SelIn signal is decoded to select
+--   the register to write. EnableIn is set when writing a register and reset when not writing a register.
+--   In case of instructions that do not save the result in a register, EnableIn will be reset.
 --   SelA and SelB select the registers to output on channel A and B, respectively.
 --   RegIn may come from different sources.(e.g. ALU output, data bus, etc.) However, a MUX that selects 
 --   the sourcesof RegIn is implemented outside the RegisterArray entity in following assignments.
@@ -27,12 +27,12 @@ use xil_defaultlib.constants.all;
 --   for use with IJMP and ICALL.
 --
 -- Inputs
---		CLK: The source clock
+--	CLK: The source clock
 --  	EnableIn: Enables writing to a register in the register set (1 bit)
---		SelIn: Selects the register to be written (REG_SEL_SIZE bits)
---		SelA: Selects the register to be output on OperandA bus (REG_SEL_SIZE bits)
---		SelB: Selects the register to be output on OperandB bus (REG_SEL_SIZE bits)
---		RegIn: The data to be written to a register in RegisterArray (5 bits)
+--	SelIn: Selects the register to be written (REG_SEL_SIZE bits)
+--	SelA: Selects the register to be output on OperandA bus (REG_SEL_SIZE bits)
+--	SelB: Selects the register to be output on OperandB bus (REG_SEL_SIZE bits)
+--	RegIn: The data to be written to a register in RegisterArray (5 bits)
 --
 --      SelWord: Selects register pair to be read/written (X, Y, Z, SP) (4 bits)
 --      EnableWord: Enables writing to a register pair (1 bit)
@@ -44,7 +44,7 @@ use xil_defaultlib.constants.all;
 --      Reset: active-low reset to initialize SP to all 1s (1 bit)
 --
 -- Outputs
---		RegAOut: The register value output on OperandA bus (REG_SIZE bits)
+--	RegAOut: The register value output on OperandA bus (REG_SIZE bits)
 --      RegBOut: The register value output on OperandB bus (REG_SIZE bits)
 --      RegWordOut : The register pair output (X, Y, Z, or SP) (WORD_SIZE bits)
 --      RegZOut : The register pair Z output, needed for IJMP and ICALL since the 
